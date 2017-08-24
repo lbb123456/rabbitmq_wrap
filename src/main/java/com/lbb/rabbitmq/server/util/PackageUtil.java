@@ -87,6 +87,10 @@ public class PackageUtil {
 						childFilePath = childFilePath.substring(childFilePath.indexOf("\\classes") + 9, childFilePath.lastIndexOf("."));
 						childFilePath = childFilePath.replace("\\", ".");
 						myClassName.add(childFilePath);
+					}else if(childFilePath.contains("\\test-classes")){
+						childFilePath = childFilePath.substring(childFilePath.indexOf("\\test-classes") + 14, childFilePath.lastIndexOf("."));
+						childFilePath = childFilePath.replace("\\", ".");
+						myClassName.add(childFilePath);
 					}
 				}
 			}

@@ -1,7 +1,5 @@
 package com.lbb.rabbitmq.server.producer;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,7 +16,7 @@ public class MessageProducer extends MessageCommonConfigure{
 
 	private Logger logger = LoggerFactory.getLogger(MessageProducer.class);
 
-	public void sendMessage(String queueName,Object message) throws IOException {
+	public void sendMessage(String queueName,Object message) throws Exception {			
 		initQueus(queueName);
 		logger.info("to send message:{}", message);
 		rabbitTemplate().convertAndSend(queueName, HessionCodecFactory.serialize(message));
