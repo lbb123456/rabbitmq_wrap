@@ -1,6 +1,8 @@
 package com.lbb.rabbitmq.server.consumer;
 
+import com.lbb.rabbitmq.server.bean.MessageBody;
+
 public interface IMessageReceiver {
 
-	void receiveMessage(Object message);
+	void receiveMessage(MessageBody message);
 }

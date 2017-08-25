@@ -1,6 +1,6 @@
 package com.lbb.rabbitmq.server.consumer;
 
-public interface IMessageProcess {
+public interface IMessageProcess<E> {
 
-	void process(Object obj);
+	void process(E obj);
 }

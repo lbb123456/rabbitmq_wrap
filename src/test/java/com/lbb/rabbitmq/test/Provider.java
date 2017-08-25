@@ -35,20 +35,12 @@ public class Provider {
 			person.setAge(1);
 			person.setName("lilei");
 			person.setBirth(new Date());
-			mp.sendMessage("test_0",person);
-			mp.sendMessage("test_1","hello world");
+			mp.sendMessage("isz.common.mq.test2",person);
+			person.setName("hanmeimei");
+			mp.sendMessage("isz.common.mq.test3",person);
 		} catch (Exception e) {
 			//logger.error("== DubboProvider context start error:", e);
 			System.out.println(e.getMessage());
-		}
-		synchronized (Provider.class) {
-			while (true) {
-				try {
-					Provider.class.wait();
-				} catch (InterruptedException e) {
-					System.out.println(e.getMessage());
-				}
-			}
 		}
 	}
 

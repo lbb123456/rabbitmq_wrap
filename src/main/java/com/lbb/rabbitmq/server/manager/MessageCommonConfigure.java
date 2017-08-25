@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import com.lbb.rabbitmq.server.constant.MessageConstant;
 import com.lbb.rabbitmq.server.exception.MQException;
 
 
@@ -25,10 +26,9 @@ import com.lbb.rabbitmq.server.exception.MQException;
 @Configuration
 public class MessageCommonConfigure {
 
-	private Logger logger = LoggerFactory.getLogger(MessageCommonConfigure.class);
+	private static final Logger logger = LoggerFactory.getLogger(MessageCommonConfigure.class);
 
-	private static final String exchangeName = "isz-common-exchange";
-	private static Set<String> binded = new CopyOnWriteArraySet<String>();
+	private static final Set<String> binded = new CopyOnWriteArraySet<String>();
 //	private static Set<String> exchanges = new ConcurrentHashSet<String>();
 
 	/**
@@ -47,7 +47,7 @@ public class MessageCommonConfigure {
 		}
 	}
 	
-	public void initQueus(String... queueNames) throws MQException {
+	protected void initQueus(String... queueNames) throws MQException {
 //		if (!binded.contains(exchangeName)) {
 //			amqpAdmin().declareExchange(exchange());
 //		}		
@@ -68,7 +68,7 @@ public class MessageCommonConfigure {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory() {
+	protected ConnectionFactory connectionFactory() {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("192.168.15.9");
 		logger.debug("...connectionFactory...");
 		connectionFactory.setUsername("lbb");
@@ -79,23 +79,23 @@ public class MessageCommonConfigure {
 	}
 
 	@Bean
-	public RabbitTemplate rabbitTemplate() {
+	protected RabbitTemplate rabbitTemplate() {
 		logger.debug("...rabbitTemplate...");
 		RabbitTemplate template = new RabbitTemplate(connectionFactory());
-		template.setExchange(exchangeName);
+		template.setExchange(MessageConstant.DEFAULT_EXCHANGE_NAME);
 		return template;
 	}
 
 	@Bean
-	public AmqpAdmin amqpAdmin() {
+	protected AmqpAdmin amqpAdmin() {
 		logger.debug("...amqpAdmin...");
 		return new RabbitAdmin(connectionFactory());
 	}
 
 	@Bean
-	public DirectExchange exchange() {
+	protected DirectExchange exchange() {
 		logger.debug("...exchange...");
-		return new DirectExchange(exchangeName, true, false);
+		return new DirectExchange(MessageConstant.DEFAULT_EXCHANGE_NAME, true, false);
 	}
 
 }

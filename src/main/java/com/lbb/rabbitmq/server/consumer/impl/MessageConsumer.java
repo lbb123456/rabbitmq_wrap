@@ -1,6 +1,8 @@
 package com.lbb.rabbitmq.server.consumer.impl;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import com.lbb.rabbitmq.server.constant.MessageConstant;
 import com.lbb.rabbitmq.server.consumer.IMessageProcess;
 import com.lbb.rabbitmq.server.consumer.Queuename;
-import com.lbb.rabbitmq.server.exception.MQException;
 import com.lbb.rabbitmq.server.manager.MessageCommonConfigure;
 import com.lbb.rabbitmq.server.util.PackageUtil;
 
@@ -23,87 +25,55 @@ import com.lbb.rabbitmq.server.util.PackageUtil;
 @ComponentScan(basePackages = "com.lbb.rabbitmq.server.consumer")
 public class MessageConsumer extends MessageCommonConfigure {
 
-	private Logger logger = LoggerFactory.getLogger(MessageConsumer.class);
-	
-	public static IMessageProcess messageProcess;
-	private static final String DEFAULT_QUEUE_NAME="isz.common.mq.test";
+	private static final Logger logger = LoggerFactory.getLogger(MessageConsumer.class);
+
+	public static ConcurrentMap<String, IMessageProcess<?>> consumerMap=new ConcurrentHashMap<String, IMessageProcess<?>>();
 
 	@Bean
 	SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
 			MessageListenerAdapter listenerAdapter) throws Exception {
 
-		
-		List<String> classNames = PackageUtil.getClassName("com");
-		String queueNames=DEFAULT_QUEUE_NAME;
-		int queueAnnotationCount=0;
+		//初始化容器
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);		
+		//查找要往容器添加的队列
+		List<String> classNames = PackageUtil.getClassName(MessageConstant.DEFAULT_SCAN_PACKAGE_NAME);
+		String queueName=MessageConstant.DEFAULT_QUEUE_NAME;
 		for(String className:classNames){
 			logger.debug(className);
 			try {
 				if(Class.forName(className).isAnnotationPresent(Queuename.class)){
 					Queuename annotation=(Queuename)Class.forName(className).getAnnotation(Queuename.class);
-					messageProcess=(IMessageProcess) Class.forName(className).newInstance();
-					queueNames=annotation.name();
+					IMessageProcess<?> messageProcess=(IMessageProcess<?>) Class.forName(className).newInstance();
+					queueName=annotation.name();
+					StringBuilder queueBuild=new StringBuilder();
+					queueBuild.append(MessageConstant.DEFAULT_EXCHANGE_NAME);
+					queueBuild.append("|");
+					queueBuild.append(queueName);
+					consumerMap.putIfAbsent(queueBuild.toString(), messageProcess);
+					initQueus(queueName);
+					container.addQueueNames(queueName);;
 					logger.debug("queueName: {}",annotation.name());
-					queueAnnotationCount++;
 				}
 			} catch (ClassNotFoundException e) {
 				logger.error("class load queue fail:{}",e);
 				throw new ClassNotFoundException("class load queue fail:",e);
 			}
 		}
-		if(queueAnnotationCount>1){
-			logger.warn("queuename of annotation count must 1");
-			throw new MQException("queuename of annotation count must 1");
-		}
-		if(DEFAULT_QUEUE_NAME.equals(queueNames)){
+		if(MessageConstant.DEFAULT_QUEUE_NAME.equals(queueName)){
 			logger.warn("queueName is required !!");
-			//throw new MQException("queueName is required.");
+			initQueus(queueName);
+			container.addQueueNames(queueName);;
 		}
-		
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory);
-		int queueCount=queueNames.split(",").length;
-		logger.debug("queue count {}",queueCount);
-		if(queueCount>5){
-			logger.error("max support queue count 5");
-			throw new MQException("max support queue count 5");
-		}
-		String queueName_0="",queueName_1="",queueName_2="",queueName_3="";
-		if(1==queueCount){
-			queueName_0=queueNames.split(",")[0];
-			initQueus(queueName_0);
-			container.setQueueNames(queueName_0);
-		}
-		if(2==queueCount){
-			queueName_0=queueNames.split(",")[0];
-			queueName_1=queueNames.split(",")[1];
-			initQueus(queueName_0,queueName_1);
-			container.setQueueNames(queueName_0,queueName_1);
-		}
-		if(3==queueCount){
-			queueName_0=queueNames.split(",")[0];
-			queueName_1=queueNames.split(",")[1];
-			queueName_2=queueNames.split(",")[2];
-			initQueus(queueName_0,queueName_1,queueName_2);
-			container.setQueueNames(queueName_0,queueName_1,queueName_2);
-		}
-		if(4==queueCount){
-			queueName_0=queueNames.split(",")[0];
-			queueName_1=queueNames.split(",")[1];
-			queueName_2=queueNames.split(",")[2];
-			queueName_3=queueNames.split(",")[3];
-			initQueus(queueName_0,queueName_1,queueName_2,queueName_3);
-			container.setQueueNames(queueName_0,queueName_1,queueName_2,queueName_3);
-		}	
 		container.setMessageListener(listenerAdapter);
 		return container;
-
 	}
 
 	@Bean
 	MessageListenerAdapter listenerAdapter(MessageReceiver receiver) {
-		return new MessageListenerAdapter(receiver, "receiveMessage");
+		return new MessageListenerAdapter(receiver, MessageConstant.DEFAULT_RECEIVE_MESSAGE_METHOD);
 	}
+
 
 
 }
