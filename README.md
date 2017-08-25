@@ -24,7 +24,7 @@ public class MessageProcessTest implements IMessageProcess<Person> {
 1)	实现ImessageProcess接口，在process方法体内做消息的业务处理。
 2)	加上@Queuename注解，name中写明对应的key(可理解为队列名)，如果程序要消费多个不同的队列，那就再写多个这样的类，实现ImessageProcess<E>。
 注: 
-	队列名字一定要符合lbb.*.*.*样式 第一个*是应用名，第二个*是模块名,第三个*是方法名,如lbb.erp.contract.create，消息一旦多时，能很好地进行查找或者排序。如果不按这种写法，启动会提示相关错误，不会成功。@Queuename改动要重启程序。
+队列名字一定要符合lbb.*.*.*样式 第一个*是应用名，第二个*是模块名,第三个*是方法名,如lbb.erp.contract.create，消息一旦多时，能很好地进行查找或者排序。如果不按这种写法，启动会提示相关错误，不会成功。@Queuename改动要重启程序。
 3.	提供者开发
 @Autowired
 MessageProducer messageProducer;
@@ -40,9 +40,9 @@ try {
 messageProducer注入，调用sendMessage方法即可。第一个参数队列名(这个队列名跟@Queuename后的名字是一一对应的)，第二个是封闭好后的消息实体。
 
 4.	后续
-	Exchange使用了默认的lbb_common_exchange。
+Exchange使用了默认的lbb_common_exchange。
 目前exchange类型使用的是Direct，即一对一的消息队列，能满足不同系统间异步消息传输的需求。如果在使用过程中，有Topic或者Fanout的使用需求，请联系我持续改进。
-	vhost使用了lbb_common_host，作为默认vhost。
-	运维事先建立好公用vhost，分配原消息系统用户权限。
+vhost使用了lbb_common_host，作为默认vhost。
+运维事先建立好公用vhost，分配原消息系统用户权限。
 
 
